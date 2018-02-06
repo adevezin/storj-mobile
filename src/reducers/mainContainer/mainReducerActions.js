@@ -89,3 +89,11 @@ export const bucketsContainerActions = {
     disableSelectionMode,
     onSingleItemSelected
 };
+
+export const bucketsListContainerAction = {
+    onSingleItemSelected,
+    enableSelectionMode,
+    disableSelectionMode,
+    selectBucket,
+    deselectBucket
+};
