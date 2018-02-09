@@ -2,9 +2,11 @@ import {
     View,
     Text,
     StyleSheet,
-    Animated
+    DeviceEventEmitter
 } from 'react-native';
 import React, { Component } from 'react';
+import filePicker from '../utils/filePicker';
+import storj from '../utils/StorjModule';
 
 export default class TestComponent extends Component {
     constructor(props) {
