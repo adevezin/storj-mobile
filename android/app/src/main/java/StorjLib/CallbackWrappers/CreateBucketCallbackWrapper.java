@@ -2,8 +2,8 @@ package StorjLib.CallbackWrappers;
 
 import com.facebook.react.bridge.Promise;
 
-import StorjLib.Responses.SingleResponse;
-import StorjLib.StorjTypesWrappers.BucketWrapper;
+import StorjLib.response.SingleResponse;
+import StorjLib.storjModelConvertibles.BucketConvertible;
 import io.storj.libstorj.Bucket;
 import io.storj.libstorj.CreateBucketCallback;
 
@@ -14,22 +14,22 @@ import io.storj.libstorj.CreateBucketCallback;
 public class CreateBucketCallbackWrapper implements CreateBucketCallback {
 
     private Promise _promise;
-    private SingleResponse<BucketWrapper> _response;
+    private SingleResponse<BucketConvertible> _response;
 
-    public CreateBucketCallbackWrapper(Promise promise, SingleResponse<BucketWrapper> response) {
+    public CreateBucketCallbackWrapper(Promise promise, SingleResponse<BucketConvertible> response) {
         _promise = promise;
         _response = response;
     }
 
     @Override
-    public void onError(final String message) {
-        _response.error(message);
+    public void onBucketCreated(Bucket bucket) {
+        _response.success(new BucketConvertible(bucket));
         _promise.resolve(_response.toJsObject());
     }
 
     @Override
-    public void onBucketCreated(Bucket bucket) {
-        _response.success(new BucketWrapper(bucket));
+    public void onError(int code, String message) {
+        _response.error(message);
         _promise.resolve(_response.toJsObject());
     }
 }

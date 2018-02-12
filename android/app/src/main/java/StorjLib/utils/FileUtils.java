@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package StorjLib.Utils;
+package StorjLib.utils;
 
 import android.content.ContentUris;
 import android.content.Context;

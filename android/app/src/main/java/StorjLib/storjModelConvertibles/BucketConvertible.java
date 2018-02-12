@@ -1,20 +1,20 @@
-package StorjLib.StorjTypesWrappers;
+package StorjLib.storjModelConvertibles;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
-import StorjLib.Interfaces.IConvertibleToJs;
+import StorjLib.IConvertibleToJs;
 import io.storj.libstorj.Bucket;
 
 /**
  * Created by Yaroslav-Note on 1/24/2018.
  */
 
-public class BucketWrapper implements IConvertibleToJs {
+public class BucketConvertible implements IConvertibleToJs {
 
     private Bucket _bucket;
 
-    public BucketWrapper(Bucket bucket) {
+    public BucketConvertible(Bucket bucket) {
         _bucket = bucket;
     }
 

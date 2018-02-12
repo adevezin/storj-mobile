@@ -14,11 +14,12 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import StorjLib.CallbackWrappers.CreateBucketCallbackWrapper;
-import StorjLib.Responses.SingleResponse;
-import StorjLib.StorjTypesWrappers.BucketWrapper;
-import StorjLib.Utils.FileUtils;
+import StorjLib.response.SingleResponse;
+import StorjLib.storjModelConvertibles.BucketConvertible;
+import StorjLib.utils.FileUtils;
+import StorjLib.requests.DeleteBucketRequest;
+import StorjLib.requests.GenerateMnemonicRequest;
 import io.storj.libstorj.Bucket;
-import io.storj.libstorj.DeleteBucketCallback;
 import io.storj.libstorj.DeleteFileCallback;
 import io.storj.libstorj.DownloadFileCallback;
 import io.storj.libstorj.File;
@@ -60,15 +61,8 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    @Deprecated
     public void generateMnemonic(Promise promise) {
-        try {
-            String result = Storj.generateMnemonic(256);
-
-            promise.resolve(result);
-        } catch (Exception e) {
-            promise.reject(E_GENERATE_MNEMONIC, e);
-        }
+        new GenerateMnemonicRequest(getReactApplicationContext(), null, promise);
     }
 
     @ReactMethod
@@ -86,9 +80,9 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
             @Override
             public void run() {
                 try {
-                    boolean result = StorjAndroid.getInstance(getReactApplicationContext()).verifyKeys(email, password);
+                    int result = StorjAndroid.getInstance(getReactApplicationContext()).verifyKeys(email, password);
 
-                    promise.resolve(result);
+                    promise.resolve(Storj.NO_ERROR == result);
                 } catch (Exception e) {
                     promise.reject(E_VERIFY_KEYS, e);
                 }
@@ -153,7 +147,7 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SingleResponse<BucketWrapper> response = new SingleResponse<>();
+                SingleResponse<BucketConvertible> response = new SingleResponse<>();
 
                 try {
                     StorjAndroid.getInstance(getReactApplicationContext()).createBucket(bucketName, new CreateBucketCallbackWrapper(promise, response));
@@ -167,19 +161,7 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     void deleteBucket(final String bucketId, final Promise promise) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SingleResponse<BucketWrapper> response = new SingleResponse<>();
-
-                try {
-                    StorjAndroid.getInstance(getReactApplicationContext()).deleteBucket(bucketId, new DeleteBucketCallbackWrapper(promise, response));
-                } catch (Exception e) {
-                    response.error(e.getMessage());
-                    promise.resolve(response.toJsObject());
-                }
-            }
-        }).start();
+        new DeleteBucketRequest(getReactApplicationContext(), null, promise).run();
     }
 
     @ReactMethod
@@ -233,10 +215,10 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
                                     }
 
                                     @Override
-                                    public void onError(String filePath, String message) {
+                                    public void onError(String filePath, int code, String message) {
                                         WritableMap resultMap = new WritableNativeMap();
                                         resultMap.putBoolean("isSuccess", false);
-                                        resultMap.putString("errorMessage", message);
+                                        resultMap.putString("errorMessage", code + ":" + message);
 
                                         promise.resolve(resultMap);
                                     }
@@ -303,7 +285,7 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
                             }
 
                             @Override
-                            public void onError(String fileId, String message) {
+                            public void onError(String fileId, int code, String message) {
                                 WritableMap errorMap = new WritableNativeMap();
                                 errorMap.putBoolean("isSuccess", false);
                                 errorMap.putString("errorMessage", message);
@@ -332,7 +314,7 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
                         }
 
                         @Override
-                        public void onError(String message) {
+                        public void onError(int code, String message) {
                             WritableMap resultMap = new WritableNativeMap();
                             resultMap.putBoolean("isSuccess", false);
                             resultMap.putString("errorMessage", message);
@@ -383,36 +365,14 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
         }
 
         @Override
-        public void onError(String message) {
+        public void onError(int code, String message) {
             WritableMap map = new WritableNativeMap();
             map.putBoolean("isSuccess", false);
             map.putString("errorMessage", message);
             map.putNull("result");
             mPromise.resolve(map);
         }
-    }
 
-    private class DeleteBucketCallbackWrapper implements DeleteBucketCallback {
-
-        private Promise _promise;
-        private SingleResponse<BucketWrapper> _response;
-
-        public DeleteBucketCallbackWrapper(Promise promise, SingleResponse<BucketWrapper> response) {
-            _promise = promise;
-            _response = response;
-        }
-
-        @Override
-        public void onError(final String message) {
-            _response.error(message);
-            _promise.resolve(_response.toJsObject());
-        }
-
-        @Override
-        public void onBucketDeleted() {
-            _response.success(new BucketWrapper(null));
-            _promise.resolve(_response.toJsObject());
-        }
     }
 
     private class RegisterCallbackWrapper implements RegisterCallback {
@@ -440,7 +400,7 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
         }
 
         @Override
-        public void onError(final String message) {
+        public void onError(int code, String message) {
             RegisterResponse response = new RegisterResponse(
                     false,
                     null,
@@ -507,8 +467,9 @@ public class StorjLibModule extends ReactContextBaseJavaModule {
         }
 
         @Override
-        public void onError(final String message) {
+        public void onError(int code, String message) {
             _promise.reject(E_GET_BUCKETS, message);
         }
+
     }
 }

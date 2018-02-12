@@ -17,7 +17,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 
-import StorjLib.Utils.FileUtils;
+import StorjLib.utils.FileUtils;
 /**
  * {@link ReactContextBaseJavaModule}, that creates and opens FilePicker activity.
  *
